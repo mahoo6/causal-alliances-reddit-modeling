@@ -99,7 +99,7 @@ pip install -r pip_requirements.txt
 
 
 ### How to use the library
-The links of our dataset are directly provided in the notebook. To load the data, run the first cell.
+Note that throughout the project, we make use of 3 datasets. The hyperlinks title dataset, hyperlinks body dataset, and subreddit embeddings dataset. Due to their big size, we do not upload them directly to the data folder in Github. Instead, we load the datasets in our results notebook directly from the online path to these datasets. Therefore, one can run the code in the notebook to have the datasets loaded without any other step required.
 
 
 
