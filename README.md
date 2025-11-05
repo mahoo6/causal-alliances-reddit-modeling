@@ -84,12 +84,12 @@ If the effect stays significant up to high Γ (e.g., Γ ≈ 2), it’s robust �
 
 ```bash
 # clone project
-git clone <project link>
-cd <project repo>
+git clone https://github.com/epfl-ada/ada-2025-project-adanalysts.git
+cd ada-2025-project-adanalysts
 
-# [OPTIONAL] create conda environment
-conda create -n <env_name> python=3.11 or ...
-conda activate <env_name>
+# create conda environment (if needed)
+conda create -n ada25 python=3.11 -y
+conda activate ada25
 
 
 # install requirements
