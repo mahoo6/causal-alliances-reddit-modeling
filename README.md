@@ -99,7 +99,7 @@ pip install -r pip_requirements.txt
 
 
 ### How to use the library
-Tell us how the code is arranged, any explanations goes here.
+The links of our dataset are directly provided in the notebook. To load the data, run the first cell.
 
 
 
