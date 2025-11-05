@@ -80,11 +80,6 @@ If the effect stays significant up to high Γ (e.g., Γ ≈ 2), it’s robust �
 
 <img width="661" height="620" alt="image" src="https://github.com/user-attachments/assets/92c3cc77-0b32-401a-b04f-7a54676143ef" />
 
-
-# Your project name
-This is a template repo for your project to help you organise and document your code better. 
-Please use this structure for your project and document the installation, usage and structure as below.
-
 ## Quickstart
 
 ```bash
