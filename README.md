@@ -61,7 +61,7 @@ We first aggregate all subreddit interactions at a monthly resolution. For each 
 We define co-attacks as situations where two subreddits A and B both post negative links toward the same target subreddit C within the same month. To focus on meaningful conflict episodes, we further require that A and B are both classified as enemies of C at that time, qualifying the pair as 'strong co-attackers' of C. For each such trio (A,B,C), we identify when the conflict starts and ends and record how long the strong co-attack remains active.
 
 ### Causal Inference
-Descriptive patterns alone cannot establish causality. To estimate whether co-attacking actually causes subsequent friendship formation, we use a propensity-score matching framework.
+Descriptive patterns alone cannot establish causality. To estimate whether strong co-attacking (co-attacking C and being ennemies with C) actually causes subsequent friendship formation, we use a propensity-score matching framework.
 
 The **treated group** consists of subreddit pairs (A,B) that engaged in at least one strong co-attack, with the event time defined as the first month of such an attack. The **control group** consists of pairs that never co-attacked any common target.
 
