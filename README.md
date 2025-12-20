@@ -1,6 +1,6 @@
 **Is the Enemy of my Enemy my Friend?**
 
-**Abstract**
+## Abstract
 
 This project investigates whether online communities form alliances through shared hostility. Using Reddit as a case study, we model the temporal evolution of inter-community relations based on sentiment-labeled interactions.
 To support our analysis, we developed an interactive and dynamic map to visualize all our results, from intermediate to final outcomes, and illustrate how inter-community relationships evolve over time.
@@ -8,11 +8,11 @@ Since our analysis relies on the accuracy of these sentiment labels, we first as
 Finally, we test the hypothesis “the enemy of my enemy is my friend”, examining whether communities that co-attack the same targets are more likely to develop new positive relations, while accounting for the effect of other confounding factors such as pre-existing similarities between subreddits.
 
 
-**Proposed additional datasets**
+## Proposed additional datasets
 
 In addition to our dataset, we use subreddit embeddings containing one 300-dimensional vector per subreddit, with closeness capturing user-base similarity.
 
-**Research Questions**
+## Research Questions
 
 - Does the current labeling of inter-community interactions hide undetected hostilities, and how can it be improved?
   - Can temporal patterns in sentiment shifts between communities reveal potential labeling errors? 
@@ -31,9 +31,9 @@ In addition to our dataset, we use subreddit embeddings containing one 300-dimen
 
 
 
-**Methodology**
+## Methodology
 	
-  **1- Hidden hostilities**
+## 1 - Hidden hostilities
 
 The original labeling of post sentiments (source) was obtained from a model with an accuracy ≃ 0.80, trained on only 1,020 manually labeled posts taken solely from the source. In addition, positive and neutral sentiment classes were merged, and the label detected is only as accurate as the sentiment is explicit. Such limitations make false positives and mislabeled cases plausible, motivating our attempt to detect potential hidden hostilities. 
 We approach this problem through three complementary axes:
