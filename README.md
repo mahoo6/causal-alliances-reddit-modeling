@@ -57,28 +57,34 @@ These candidates will then be cross-checked through temporal analysis or embeddi
 
 **2- Is the enemy of my enemy my friend?**
 
-To answer our problem, we then proceed as follows:
+To study whether sharing a common enemy causally increases the likelihood of friendship between subreddits, we follow three main steps.
 
-- **Descriptive Co-Attack Analysis:**
-    First, a descriptive analysis identifies for every target C, all the pairs of subreddits (A,B) that co-attacked it within a certain time frame (monthly). For every (A,B,C) and every month, we store the number of negative links A->C and B->C. Then, for each pair (A,B), we define the earliest month in which they started co-attacking C as conflict_start, and we study the evolution of the number of positive links A<->B by comparing them before and after this conflict to identify how many new friendships were formed post-conflict.
+### Descriptive Co-Attack Analysis
+We first aggregate all subreddit interactions at a **monthly resolution**. For each unordered pair of subreddits (A,B) and each month, we compute a **Friendship Score** that combines sentiment balance and interaction volume. Rather than relying on ad-hoc cutoffs, we learn **enemy, neutral, and friend thresholds** directly from the data by applying K-Means clustering to the distribution of monthly Friendship Scores.
 
-- **Causal Inference:**
-    This section applies a matching-based causal inference approach to test whether co-attacking a shared target truly causes later friendship formation.
-The treated group includes subreddit pairs that co-attacked a common target without prior friendship, while the control group includes similar pairs that never co-attacked and were also not friends before that time.
+We define **co-attacks** as instances where two subreddits A and B both post negative links toward the same target subreddit C within the same month. To focus on meaningful conflicts, we further require that both A and B are classified as **enemies of C** in that month. For each such trio (A,B,C), we identify the **start and end months** of the conflict period and record how long the co-attack remains active.
 
-    We control for three confounders: topical similarity (cosine similarity between embeddings), activity level (log of total outgoing links), and aggressiveness (ratio of negative to total outgoing links). A logistic regression estimates the probability of being treated given these confounders (the propensity score). Using nearest-neighbor matching, each treated pair is matched with control pairs of similar propensity.
-  
-    Finally, we compare the change in friendship—the increase in mutual positive links before vs. after conflict—between treated and matched controls. A larger increase among treated pairs suggests that shared conflict causally promotes alliance.
+### Causal Inference
+To move from descriptive patterns to causal estimation, we use a **propensity-score matching framework**.
 
-- **Sensitivity Analysis:**
-    This section tests whether the causal effect from Section 2 holds up under possible unobserved confounders. Using Rosenbaum sensitivity analysis, we simulate how a hidden factor might bias treatment assignment.
-Starting from the matched treated and control pairs, we first compute the observed effect (difference in friendship change). Then, we introduce a bias parameter Γ (Gamma) that represents how much a hidden factor could increase a pair’s odds of co-attacking. For each Γ ≥ 1, we recompute the p-value bounds of the treatment effect.
-If the effect stays significant up to high Γ (e.g., Γ ≈ 2), it’s robust — it would take a strong hidden bias to remove it. If it fails at low Γ (≈ 1.1), it’s sensitive, meaning unobserved factors might explain the result.
+The **treated group** consists of subreddit pairs (A,B) that ever engaged in a strong co-attack, with the **event time** defined as the first month of such a co-attack. The **control group** consists of pairs that never co-attacked any common target at any time.
 
+For each control pair, we assign a **pseudo-conflict window** by:
+- sampling a conflict start month from the empirical distribution of treated conflict start times, and
+- sampling a conflict duration from the empirical distribution of treated conflict durations,
+and setting the pseudo conflict end accordingly. Control pairs that already formed a friendship before their pseudo event are excluded.
 
-**Proposed Timeline and Team Organization**
+The outcome is defined as whether a **new strict friendship** between A and B appears within the window  
+[conflict_start, conflict_end + 1],  
+which captures the period in which a causal effect of co-attacking is most plausible.
 
-<img width="661" height="620" alt="image" src="https://github.com/user-attachments/assets/92c3cc77-0b32-401a-b04f-7a54676143ef" />
+We control for pre-conflict confounders that may jointly affect co-attacking and friendship formation: topical similarity (cosine similarity of embeddings), activity level (log total outgoing links), aggressiveness (ratio of negative to total outgoing links), and prior hostility between the pair. These confounders are used in a logistic regression model to estimate **propensity scores**, after which treated pairs are matched to control pairs using nearest-neighbor matching.
+
+### Sensitivity Analysis
+Finally, we assess robustness to **unobserved confounding** using **Rosenbaum sensitivity analysis** on the matched pairs. This analysis quantifies how strongly an unobserved factor would need to influence treatment assignment within matched pairs to alter the conclusions of the matched comparison.
+
+The full methodology is applied both to the original sentiment labels and to an alternative specification in which potentially implicit negative interactions are relabeled as negative, allowing us to assess how sensitive the causal framework is to the operationalization of negative interactions.
+
 
 ## Quickstart
 
