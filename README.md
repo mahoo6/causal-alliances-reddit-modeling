@@ -51,12 +51,6 @@ These candidates will then be cross-checked through temporal analysis or embeddi
     We integrate the embedding space of subreddits to jointly consider the source and target in sentiment labeling (unlike the original approach). Since hostility often depends on the relation between communities, we analyze cosine similarities between their embeddings. A preliminary result shows that cosine similarity distributions are different for negative and non-negative interactions. We therefore plan to leverage this feature on our candidate interactions (identified beforehand) to help estimate the likelihood of mislabeling and refine the sentiment classification.
 
 
-
-
-
-
-**2- Is the enemy of my enemy my friend?**
-
 ## 2 – Is the enemy of my enemy my friend?
 
 To study whether sharing a common enemy causally increases the likelihood that two subreddits become friends, we follow three main steps.
