@@ -52,7 +52,7 @@ An interaction is flagged as hidden hostility if:
 - or the language is suspicious and the negative reaction occurs unusually fast.
 Additional safeguards are applied to avoid noise and over-representation of very large or inactive communities.
 
-Mobilization labels are additionally used to validate our assumption that rapid sentiment flips are suspect, by checking their consistency with the model’s predicted hostility probabilities.
+By utilizing the mobilization dataset from the original paper, defined as instances where a source community explicitly incites its members to collectively participate in a target subreddit, we treat these organized events as a proxy for ground truth, assuming that when a link initially labeled as positive triggers a mobilization of negative interactions (or vice versa), it provides the most reliable empirical evidence that the initial sentiment was a deceptive mask for the true underlying intent.
 
 
 ## 2 – Is the enemy of my enemy my friend?
