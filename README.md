@@ -58,7 +58,7 @@ To study whether sharing a common enemy causally increases the likelihood of sub
 ### Descriptive Co-Attack Analysis
 We first aggregate all subreddit interactions at a monthly resolution. For each unordered pair of subreddits (A,B) and each month, we compute a **Friendship Score** that reflects both how positive or negative their interactions are and how often they interact. We then use **K-Means clustering** on the distribution of monthly Friendship Scores to learn data-driven thresholds that classify relationships as **enemy**, **neutral**, or **friend**.
 
-We define co-attacks as situations where two subreddits A and B both post negative links toward the same target subreddit C within the same month. To focus on meaningful conflict episodes, we further require that A and B are both classified as enemies of C at that time, qualifying the pair as 'strong co-attackers' of C. For each such trio (A,B,C), we identify when the conflict starts and ends and record how long the co-attack remains active.
+We define co-attacks as situations where two subreddits A and B both post negative links toward the same target subreddit C within the same month. To focus on meaningful conflict episodes, we further require that A and B are both classified as enemies of C at that time, qualifying the pair as 'strong co-attackers' of C. For each such trio (A,B,C), we identify when the conflict starts and ends and record how long the strong co-attack remains active.
 
 ### Causal Inference
 Descriptive patterns alone cannot establish causality. To estimate whether co-attacking actually causes subsequent friendship formation, we use a propensity-score matching framework.
