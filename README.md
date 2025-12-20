@@ -29,26 +29,28 @@ In addition to our dataset, we use subreddit embeddings containing one 300-dimen
 
 
 
-
-
 ## Methodology
 	
 ## 1 - Hidden hostilities
+Our goal is to identify a specific phenomenon we call hidden hostility: interactions that are labeled as non-negative but whose language and subsequent dynamics strongly suggest an underlying hostile intent.
+We use a two-step approach that separates what is said from what happens next.
 
-The original labeling of post sentiments (source) was obtained from a model with an accuracy ≃ 0.80, trained on only 1,020 manually labeled posts taken solely from the source. In addition, positive and neutral sentiment classes were merged, and the label detected is only as accurate as the sentiment is explicit. Such limitations make false positives and mislabeled cases plausible, motivating our attempt to detect potential hidden hostilities. 
-We approach this problem through three complementary axes:
+1. Language-based Detection
 
-- **The temporal dimension:**
-    We analyze how often and how quickly sentiment shifts occur between community pairs to detect suspicious transitions. For each interaction (positive or negative), we     check whether an opposite-sentiment link between the same communities appears soon after the event. A positive link occurring shortly before or after a negative one may indicate hidden hostility that was initially mislabeled as non-negative. We will study the delay of these switches relative to the usual frequency of exchanges to identify serious candidate mislabels.
+We first analyze the content of posts to estimate whether an interaction sounds hostile, even when it is not explicitly labeled as such.
+Using linguistic and emotional features combined with the relationship between the two communities, we assign each interaction a hostility likelihood score.
 
-- **Linguistic analysis:**
-    We examine whether lexical and emotional markers in the source posts align with their assigned sentiment labels.
-We focus on key features (ex: VADER compound, LIWC_Anger, LIWC_Swear, LIWC_Dissent, LIWC_You/They) which capture polarity, hostility, and outgroup targeting.
-Outliers in these distributions are flagged as potential mislabels.
-These candidates will then be cross-checked through temporal analysis or embedding similarity (Section 3) to validate hidden hostility patterns.
+2. Temporal Corroboration
 
-- **Community Embedding and Hostility Correlation:**
-    We integrate the embedding space of subreddits to jointly consider the source and target in sentiment labeling (unlike the original approach). Since hostility often depends on the relation between communities, we analyze cosine similarities between their embeddings. A preliminary result shows that cosine similarity distributions are different for negative and non-negative interactions. We therefore plan to leverage this feature on our candidate interactions (identified beforehand) to help estimate the likelihood of mislabeling and refine the sentiment classification.
+Language alone can be noisy. To avoid over-interpreting ambiguous cases, we then check whether the interaction is followed by a rapid negative response between the same communities.
+Fast sentiment reversals are treated as external evidence that the initial interaction may have carried latent hostility.
+
+3. Decision Logic
+
+An interaction is flagged as hidden hostility if: 
+- the language is unambiguously hostile,
+- or the language is suspicious and the negative reaction occurs unusually fast.
+Additional safeguards are applied to avoid noise and over-representation of very large or inactive communities.
 
 
 ## 2 – Is the enemy of my enemy my friend?
