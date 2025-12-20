@@ -52,6 +52,8 @@ An interaction is flagged as hidden hostility if:
 - or the language is suspicious and the negative reaction occurs unusually fast.
 Additional safeguards are applied to avoid noise and over-representation of very large or inactive communities.
 
+Mobilization labels are additionally used to validate our assumption that rapid sentiment flips are suspect, by checking their consistency with the model’s predicted hostility probabilities.
+
 
 ## 2 – Is the enemy of my enemy my friend?
 
