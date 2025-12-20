@@ -53,7 +53,7 @@ These candidates will then be cross-checked through temporal analysis or embeddi
 
 ## 2 – Is the enemy of my enemy my friend?
 
-To study whether sharing a common enemy causally increases the likelihood that two subreddits become friends, we follow three main steps.
+To study whether sharing a common enemy causally increases the likelihood of subsequent friendship, we follow three main steps.
 
 ### Descriptive Co-Attack Analysis
 We first aggregate all subreddit interactions at a **monthly resolution**. For each unordered pair of subreddits (A,B) and each month, we compute a **Friendship Score** that reflects both how positive or negative their interactions are and how often they interact. We then use **K-Means clustering** on the distribution of monthly Friendship Scores to learn data-driven thresholds that classify relationships as **enemy**, **neutral**, or **friend**.
@@ -83,7 +83,7 @@ Starting from the matched treated and control pairs, we first compute the observ
 If the effect stays significant up to high Γ (e.g., Γ ≈ 2), it’s robust — it would take a strong hidden bias to remove it. If it fails at low Γ (≈ 1.1), it’s sensitive, meaning unobserved factors might explain the result.
 
 
-The entire causal study is applied both using the dataset with the original sentiment labels and to the modified dataset containing potential implicit negatives as actual '-1' links. This allows us to assess how sensitive the causal framework is to how negative interactions are defined and detected.
+The entire causal study is applied first using the dataset with the original sentiment labels , then using the modified dataset containing potential implicit negatives as actual '-1' links. This allows us to assess how sensitive the causal framework is to how negative interactions are defined and detected.
 
 
 ## Quickstart
