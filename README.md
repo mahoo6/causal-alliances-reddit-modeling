@@ -1,4 +1,4 @@
-# Is the Enemy of my Enemy my Friend?**
+# Is the Enemy of my Enemy my Friend?
 
 ## Abstract
 
