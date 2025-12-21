@@ -124,7 +124,7 @@ pip install -r pip_requirements.txt
 
 
 ### How to use the library
-Note that throughout the project, we make use of 3 datasets. The hyperlinks title dataset, hyperlinks body dataset, and subreddit embeddings dataset. Due to their big size, we do not upload them directly to the data folder in Github. Instead, we load the datasets in our results notebook directly from the online path to these datasets. Therefore, one can run the code in the notebook to have the datasets loaded without any other step required.
+Throughout the project, we make use of several key datasets: the hyperlinks title dataset, the hyperlinks body dataset, and the subreddit embeddings dataset. In addition, for milestone 3, we have integrated the mobilization dataset, which is composed of three separate subsets (train, validation, and test) used to identify "mobilizations," or instances where a cross-community hyperlink triggers a significant surge in user activity within a target thread. Due to their large size, we do not upload these files directly to the GitHub data folder; instead, we follow the same automated process of loading them in our results notebook directly from their online paths. Therefore, one can run the code in the notebook to have the datasets loaded without any other step required.
 
 
 
