@@ -513,12 +513,11 @@ def build_treated_pairs_from_comparison(comparison: pd.DataFrame) -> pd.DataFram
         return pd.Series({"conflict_start": conflict_start, "conflict_end": conflict_end})
 
     treated_pairs = (
-    cs_clean
-    .groupby(["A", "B"], as_index=False)
-    .agg(
-        conflict_start=("conflict_start", "min"),
-        conflict_end=("conflict_end", "max"),
-    ))
+        cs_clean
+        .groupby(["A", "B"], as_index=False)
+        .apply(summarize_pair, include_groups=False)
+        .reset_index(drop=True)
+    )
 
     # 3) Add duration and treated flag
     treated_pairs["duration"] = treated_pairs["conflict_end"] - treated_pairs["conflict_start"] + 1
