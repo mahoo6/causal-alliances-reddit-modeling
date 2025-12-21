@@ -128,7 +128,7 @@ The directory structure of new project looks like this:
 │   ├── utils                           <- Utility directory
 │   ├── scripts                         <- Shell scripts
 │
-├── tests                       <- Tests of any kind
+├
 │
 ├── results.ipynb               <- a well-structured notebook showing the results
 │
