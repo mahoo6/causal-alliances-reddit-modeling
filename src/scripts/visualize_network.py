@@ -1,211 +1,214 @@
-import warnings
-import pandas as pd
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
-from tqdm import tqdm
+import plotly.io as pio
 import umap
 from sklearn.preprocessing import StandardScaler
 
+# VSCode notebook
+pio.renderers.default = "vscode"
 
-warnings.filterwarnings("ignore", category=UserWarning, module="umap")
-warnings.filterwarnings("ignore", message=".*omp_set_nested.*")
 
-def process_embeddings(emb_df: pd.DataFrame):
-    """
-    Reduces subreddit embeddings to 2D using UMAP and prepares
-    a coordinate map for visualization.
-
-    Args:
-        emb_df (pd.DataFrame): DataFrame containing subreddit embeddings.
-                               Must include 'subreddit' and embedding columns.
-
-    Returns:
-        - emb_df: DataFrame with added columns ['x', 'y']
-        - emb_map: dict{subreddit: {'x': x, 'y': y}} for quick coordinate access
-    """
+def process_embeddings_umap2d(emb_df: pd.DataFrame, random_state: int = 42):
     vec_cols = [c for c in emb_df.columns if c != "subreddit"]
-
-    # Dimensionality reduction (UMAP → 2D)
     X = emb_df[vec_cols].astype(float).values
-    X_scaled = StandardScaler().fit_transform(X)
+    Xs = StandardScaler().fit_transform(X)
+
     reducer = umap.UMAP(
+        n_components=2,
         n_neighbors=15,
         min_dist=0.1,
-        random_state=42,
-        n_jobs=1,  
-        verbose=False
+        metric="cosine",
+        random_state=random_state,
+        n_jobs=1,
+        verbose=False,
     )
-    coords = reducer.fit_transform(X_scaled)
+    coords = reducer.fit_transform(Xs)
 
-    emb_df["x"], emb_df["y"] = coords[:, 0], coords[:, 1]
-    emb_map = emb_df.set_index("subreddit")[["x", "y"]].to_dict("index")
+    out = emb_df[["subreddit"]].copy()
+    out["x"] = coords[:, 0]
+    out["y"] = coords[:, 1]
+    emb_map = out.set_index("subreddit")[["x", "y"]].to_dict("index")
+    return out, emb_map
 
-    print(f"Embeddings processed: {len(emb_df)} subreddits, UMAP projection to 2D completed.")
-    return emb_df, emb_map
 
-
-#Prepare temporal data
-
-def prepare_monthly_data(df: pd.DataFrame):
-    """
-    Adds a 'month' column (formatted as YYYY-MM) and returns the sorted list of months.
-    """
+def animate_nodes(
+    df: pd.DataFrame,
+    emb_map: dict,
+    min_node_links: int = 3,
+    top_n_nodes: int = 1200,
+    size_max: float = 22,
+):
+    df = df.copy()
+    df["TIMESTAMP"] = pd.to_datetime(df["TIMESTAMP"], errors="coerce")
+    df = df.dropna(subset=["TIMESTAMP"])
     df["month"] = df["TIMESTAMP"].dt.to_period("M").astype(str)
+
     months = sorted(df["month"].unique())
-    print(f" {len(months)} months detected ({months[0]} → {months[-1]})")
-    return months
+    emb_keys = set(emb_map.keys())
 
-
-
-#Generate monthly Plotly frames
-
-def create_monthly_frames(df: pd.DataFrame, months: list[str], emb_map: dict):
-    """
-    Creates a list of Plotly frames representing subreddit interactions
-    for each month.
-    """
     frames = []
 
-    for month in tqdm(months, desc="Creating monthly frames"):
-        df_month = df[df["month"] == month]
-
-        # Aggregate links and count their frequency
-        df_month_agg = (
-            df_month.groupby(["SOURCE_SUBREDDIT", "TARGET_SUBREDDIT", "LINK_SENTIMENT"])
-            .size()
-            .reset_index(name="count")
-        )
-
-        # Keep only subreddits that exist in the embeddings
-        df_month_agg = df_month_agg[
-            df_month_agg["SOURCE_SUBREDDIT"].isin(emb_map.keys()) &
-            df_month_agg["TARGET_SUBREDDIT"].isin(emb_map.keys())
+    for m in months:
+        dm = df[df["month"] == m]
+        dm = dm[
+            dm["SOURCE_SUBREDDIT"].isin(emb_keys) &
+            dm["TARGET_SUBREDDIT"].isin(emb_keys)
         ]
 
-        edge_traces = []
-        for _, row in df_month_agg.iterrows():
-            src, tgt, sentiment, count = (
-                row["SOURCE_SUBREDDIT"],
-                row["TARGET_SUBREDDIT"],
-                row["LINK_SENTIMENT"],
-                row["count"],
+        if dm.empty:
+            frames.append(go.Frame(name=m, data=[go.Scatter(x=[], y=[])]))
+            continue
+
+        out_stats = (
+            dm.groupby("SOURCE_SUBREDDIT")["LINK_SENTIMENT"]
+            .agg(
+                out_links="size",
+                mean_sent="mean",
+                pos=lambda s: (s > 0).sum(),
+                neg=lambda s: (s < 0).sum(),
             )
+            .reset_index()
+            .rename(columns={"SOURCE_SUBREDDIT": "subreddit"})
+        )
+        in_stats = (
+            dm.groupby("TARGET_SUBREDDIT")["LINK_SENTIMENT"]
+            .size()
+            .reset_index(name="in_links")
+            .rename(columns={"TARGET_SUBREDDIT": "subreddit"})
+        )
 
-            x0, y0 = emb_map[src]["x"], emb_map[src]["y"]
-            x1, y1 = emb_map[tgt]["x"], emb_map[tgt]["y"]
+        stats = out_stats.merge(in_stats, on="subreddit", how="left").fillna({"in_links": 0})
+        stats["total_links"] = stats["out_links"] + stats["in_links"]
+        stats["net_sent"] = (stats["pos"] - stats["neg"]) / stats["out_links"].clip(lower=1)
 
-            # Red = negative, blue = positive
-            color = "red" if sentiment < 0 else "blue"
-            width = 0.5 + np.log1p(count)
+        stats = stats[stats["total_links"] >= min_node_links]
+        if stats.empty:
+            frames.append(go.Frame(name=m, data=[go.Scatter(x=[], y=[])]))
+            continue
 
-            edge_traces.append(
-                go.Scatter(
-                    x=[x0, x1],
-                    y=[y0, y1],
-                    mode="lines",
-                    line=dict(width=width, color=color),
-                    opacity=0.5,
-                    hoverinfo="text",
-                    text=f"{src} → {tgt}<br>Sentiment={sentiment}, count={count}",
-                )
-            )
+        stats = stats.sort_values("total_links", ascending=False).head(top_n_nodes)
 
-        # Active nodes for the month
-        active_subs = set(df_month_agg["SOURCE_SUBREDDIT"]) | set(df_month_agg["TARGET_SUBREDDIT"])
-        node_x, node_y, node_text = [], [], []
-        for sub in active_subs:
-            x, y = emb_map[sub]["x"], emb_map[sub]["y"]
-            node_x.append(x)
-            node_y.append(y)
-            node_text.append(sub)
+        stats["x"] = stats["subreddit"].map(lambda s: emb_map[s]["x"])
+        stats["y"] = stats["subreddit"].map(lambda s: emb_map[s]["y"])
 
-        node_trace = go.Scatter(
-            x=node_x,
-            y=node_y,
+        sizes = np.log1p(stats["total_links"].values)
+        sizes = sizes / sizes.max() * size_max if sizes.max() > 0 else sizes
+        sizes = np.clip(sizes, 4, size_max)
+
+        trace = go.Scatter(
+            x=stats["x"],
+            y=stats["y"],
             mode="markers",
-            marker=dict(size=6, color="black"),
-            hovertext=node_text,
-            hoverinfo="text",
+            marker=dict(
+                size=sizes,
+                color=stats["net_sent"],
+                cmin=-1, cmax=1,
+                colorscale="RdBu",   # red = -1 hostile, blue = +1 positive
+                opacity=0.85,
+                colorbar=dict(
+                    title="Net sentiment",
+                    x=0.98,        
+                    xanchor="left",
+                    tickmode="array",
+                    tickvals=[-1, 0, 1],
+                    ticktext=["Hostile (-1)", "Neutral (0)", "Positive (+1)"],
+                ),
+
+                line=dict(width=0.5, color="rgba(0,0,0,0.2)"),
+            ),
+
+
+            text=stats["subreddit"],
+            hovertemplate=(
+                "<b>%{text}</b><br>"
+                "total_links=%{customdata[0]}<br>"
+                "out_links=%{customdata[1]}<br>"
+                "in_links=%{customdata[2]}<br>"
+                "mean_sent=%{customdata[3]:.3f}<br>"
+                "net_sent=%{customdata[4]:.3f}<extra></extra>"
+            ),
+            customdata=np.stack([
+                stats["total_links"].values,
+                stats["out_links"].values,
+                stats["in_links"].values,
+                stats["mean_sent"].values,
+                stats["net_sent"].values,
+            ], axis=1),
+            showlegend=False,
         )
 
-        frames.append(
-            go.Frame(
-                data=edge_traces + [node_trace],
-                name=month,
-                layout=go.Layout(title_text=f"Emotional flows between subreddits — {month}"),
-            )
-        )
+        frames.append(go.Frame(name=m, data=[trace], layout=go.Layout(title_text=f"Subreddit sentiment map — {m}")))
 
-    return frames
+        fig = go.Figure(data=frames[0].data, frames=frames)
 
+    # Slider
+    sliders = [{
+        "active": 0,
+        "pad": {"t": 30},
+        "x": 0.08,
+        "len": 0.88,
+        "steps": [{
+            "args": [[m], {"frame": {"duration": 0, "redraw": True},
+                          "mode": "immediate",
+                          "transition": {"duration": 0}}],
+            "label": m,
+            "method": "animate"
+        } for m in months]
+    }]
 
+    # Play / Pause
+    updatemenus = [{
+        "type": "buttons",
+        "direction": "left",
+        "x": 0.08,
+        "y": -0.05,
+        "xanchor": "left",
+        "yanchor": "top",
+        "pad": {"r": 10, "t": 0},
+        "showactive": False,
+        "buttons": [
+            {
+                "label": "▶ Play",
+                "method": "animate",
+                "args": [
+                    None,
+                    {
+                        "frame": {"duration": 450, "redraw": True},  # speed
+                        "fromcurrent": True,
+                        "transition": {"duration": 0},
+                        "mode": "immediate",
+                    },
+                ],
+            },
+            {
+                "label": "⏸ Pause",
+                "method": "animate",
+                "args": [
+                    [None],
+                    {
+                        "frame": {"duration": 0, "redraw": False},
+                        "mode": "immediate",
+                        "transition": {"duration": 0},
+                    },
+                ],
+            },
+        ],
+    }]
 
-# Main animation
-
-def animate_network(df: pd.DataFrame, emb_df: pd.DataFrame):
-    """
-    Combines the previous functions to create an interactive Plotly animation
-    showing the evolution of subreddit sentiment flows month by month.
-    """
-
-    emb_map = emb_df.set_index("subreddit")[["x", "y"]].to_dict("index")
-    months = prepare_monthly_data(df)
-    frames = create_monthly_frames(df, months, emb_map)
-
-    fig = go.Figure(data=frames[0].data, frames=frames)
     fig.update_layout(
-        width=950,
+        width=None,
         height=750,
-        title=f"Emotional flows between subreddits — {months[0]}",
-        plot_bgcolor="white",
-        showlegend=False,
-        updatemenus=[
-            {
-                "buttons": [
-                    {
-                        "args": [
-                            None,
-                            {
-                                "frame": {"duration": 800, "redraw": True},
-                                "fromcurrent": True,
-                                "mode": "immediate",
-                            },
-                        ],
-                        "label": "▶️ Play",
-                        "method": "animate",
-                    },
-                    {
-                        "args": [
-                            [None],
-                            {"frame": {"duration": 0, "redraw": True}, "mode": "immediate"},
-                        ],
-                        "label": "⏸️ Pause",
-                        "method": "animate",
-                    },
-                ],
-                "direction": "left",
-                "pad": {"r": 10, "t": 85},
-                "showactive": False,
-                "type": "buttons",
-                "x": 0.1,
-                "xanchor": "right",
-                "y": 0,
-                "yanchor": "top",
-            }
-        ],
-        sliders=[
-            {
-                "active": 0,
-                "pad": {"t": 50},
-                "steps": [
-                    {
-                        "args": [[m], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate"}],
-                        "label": m,
-                        "method": "animate",
-                    }
-                    for m in months
-                ],
-            }
-        ],
+        autosize=True,
+        template="plotly_white",
+        title=f"Subreddit sentiment map — {months[0]}",
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        margin=dict(l=20, r=140, t=70, b=90),
+        sliders=sliders,
+        updatemenus=updatemenus,
     )
+
+
     return fig
+
