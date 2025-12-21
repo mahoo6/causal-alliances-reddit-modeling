@@ -137,7 +137,7 @@ The directory structure of new project looks like this:
 │
 ├── src                         <- Source code
 │   ├── data                            <- Data directory
-│   ├── models                          <- Model directory
+│   ├── screenshots                     <- Directory for interactive plots screenshots
 │   ├── utils                           <- Utility directory
 │   ├── scripts                         <- Shell scripts
 │
