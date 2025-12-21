@@ -14,6 +14,8 @@ Finally, we test the hypothesis “the enemy of my enemy is my friend”, examin
 
 In addition to our dataset, we use subreddit embeddings containing one 300-dimensional vector per subreddit, with closeness capturing user-base similarity.
 
+We also use the intercommunity mobilization dataset from the paper "Community Interaction and Conflict on the Web" , which we extract and merge by POST_ID from the project's official train, validation, and test sets to identify "mobilizations ». Mobilizations corresponds to instances where a cross-community hyperlink triggers a significant surge in user activity within a target thread.
+
 ## Research Questions
 
 - Does the current labeling of inter-community interactions hide undetected hostilities, and how can it be improved?
