@@ -91,6 +91,17 @@ If the effect stays significant up to high Γ (e.g., Γ ≈ 2), it’s robust �
 
 The entire causal study is applied first using the dataset with the original sentiment labels, then using the modified dataset containing potential implicit negatives as actual '-1' links. This allows us to assess how sensitive the causal framework is to how negative interactions are defined and detected.
 
+## Organization Within the Team
+
+- **Joelle**: Part II  
+- **Mahe**: Part I 
+- **Adélaïde**: Part I 
+- **Christy**: Part II 
+- **Théodore**: Data Preprocessing, Website and Map Visualization 
+
+Each member carried out the data analysis for their respective part and contributed to the associated data story.
+
+
 
 ## Quickstart
 
