@@ -149,4 +149,5 @@ The directory structure of new project looks like this:
 ├── pip_requirements.txt        <- File for installing python dependencies
 └── README.md
 ```
-
+## Authors 
+Mahe Velay, Adélaïde Robert, Théodore Decaux, Christy El Skaff, joelle Achkar
